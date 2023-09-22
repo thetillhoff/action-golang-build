@@ -1,6 +1,9 @@
 name: Golang build
 
 inputs:
+  GITHUB_TOKEN:
+    description: "Token that is allowed to delete tags"
+    required: true
   APP_NAME:
     description: "Name of the app"
     required: false
@@ -12,6 +15,9 @@ inputs:
     description: "Architecture to build for (amd64,...)"
     required: true
     default: "${{ github.event.repository.name }}"
+
+permissions:
+  contents: write
 
 runs:
   using: "composite"
