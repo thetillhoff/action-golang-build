@@ -12,6 +12,9 @@ inputs:
     description: "Architecture to build for (amd64,...)"
     required: true
     default: "${{ github.event.repository.name }}"
+  BUILDARGS:
+    description: "Additional args to add to the build command (for example `-ldflags="-X 'cmd.version=v1.0.0'"`)"
+    required: false
 
 permissions:
   contents: write
@@ -45,7 +48,7 @@ runs:
         echo "architecture: ${{ inputs.ARCH }}"
         go version
 
-        env GOOS=${{ inputs.OS }} GOARCH=${{ inputs.ARCH }} go build -o ./${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }}
+        env GOOS=${{ inputs.OS }} GOARCH=${{ inputs.ARCH }} go build ${{ inputs.BUILDARGS }} -o ./${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }}
 
         # If FILE_EXTENSION is empty, there is no need to make the binary executable, because it is for windows.
         if test -z "${{ env.FILE_EXTENSION }}"; then chmod +x ./${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }}; fi
