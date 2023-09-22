@@ -1,0 +1,75 @@
+name: Golang build
+
+inputs:
+  APP_NAME:
+    description: "Name of the app"
+    required: false
+    default: "${{ github.event.repository.name }}"
+
+runs:
+  using: "composite"
+  strategy:
+    matrix:
+      os:
+        - linux
+        - windows
+        - darwin
+      architecture:
+        - amd64
+
+  steps:
+    - name: Set environment variables
+      shell: bash
+      run: |
+        if [[ ${{ matrix.os }} == "windows" ]]; then
+          echo "FILE_EXTENSION=.exe" >> $GITHUB_ENV
+        else
+          echo "FILE_EXTENSION=" >> $GITHUB_ENV
+        fi
+
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        ref: "${{ github.ref_name }}"
+
+    - name: Set golang version
+      uses: actions/setup-go@v3
+      with:
+        go-version-file: 'go.mod'
+
+    - name: Compile binary by defined matrix
+      shell: bash
+      run: |
+        echo "os: ${{ matrix.os }}"
+        echo "architecture: ${{ matrix.architecture }}"
+        go version
+
+        env GOOS=${{ matrix.os }} GOARCH=${{ matrix.architecture }} go build -o ./${{ inputs.APP_NAME }}_${{ matrix.os }}_${{ matrix.architecture }}${{ env.FILE_EXTENSION }}
+
+        # If FILE_EXTENSION is empty, there is no need to make the binary executable, because it is for windows.
+        if test -z "${{ env.FILE_EXTENSION }}"; then chmod +x ./${{ inputs.APP_NAME }}_${{ matrix.os }}_${{ matrix.architecture }}${{ env.FILE_EXTENSION }}; fi
+
+    - name: Upload artifact
+      uses: 'actions/upload-artifact@v3'
+      with:
+          name: artifact_${{ inputs.APP_NAME }}_${{ matrix.os }}_${{ matrix.architecture }}
+          path: ./${{ inputs.APP_NAME }}_${{ matrix.os }}_${{ matrix.architecture }}${{ env.FILE_EXTENSION }}
+
+    - name: Generate checksum
+      shell: bash
+      run: |
+        sha256sum ./${{ inputs.APP_NAME }}_${{ matrix.os }}_${{ matrix.architecture }}${FILE_EXTENSION} | cut -d " " -f 1 > ./${{ inputs.APP_NAME }}_${{ matrix.os }}_${{ matrix.architecture }}${{ env.FILE_EXTENSION }}.sha256
+
+    - name: Upload checksum artifact
+      uses: 'actions/upload-artifact@v3'
+      with:
+          name: artifact_${{ inputs.APP_NAME }}_${{ matrix.os }}_${{ matrix.architecture }}${{ env.FILE_EXTENSION }}.sha256
+          path: ./${{ inputs.APP_NAME }}_${{ matrix.os }}_${{ matrix.architecture }}${{ env.FILE_EXTENSION }}.sha256
+
+    - name: Delete version-tag when build fails
+      if: failure()
+      shell: bash
+      run: |
+        git config --global user.name 'GithubActions'
+        git config --global user.email 'githubactions@users.noreply.github.com'
+        git push --delete origin ${{ github.ref_name }}
