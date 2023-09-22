@@ -5,23 +5,21 @@ inputs:
     description: "Name of the app"
     required: false
     default: "${{ github.event.repository.name }}"
+  OS:
+    description: "OS to build for (linux, windows, darwin)"
+    required: true
+  ARCH:
+    description: "Architecture to build for (amd64,...)"
+    required: true
+    default: "${{ github.event.repository.name }}"
 
 runs:
   using: "composite"
-  strategy:
-    matrix:
-      os:
-        - linux
-        - windows
-        - darwin
-      architecture:
-        - amd64
-
   steps:
     - name: Set environment variables
       shell: bash
       run: |
-        if [[ ${{ matrix.os }} == "windows" ]]; then
+        if [[ ${{ inputs.OS }} == "windows" ]]; then
           echo "FILE_EXTENSION=.exe" >> $GITHUB_ENV
         else
           echo "FILE_EXTENSION=" >> $GITHUB_ENV
@@ -40,31 +38,31 @@ runs:
     - name: Compile binary by defined matrix
       shell: bash
       run: |
-        echo "os: ${{ matrix.os }}"
-        echo "architecture: ${{ matrix.architecture }}"
+        echo "os: ${{ inputs.OS }}"
+        echo "architecture: ${{ inputs.ARCH }}"
         go version
 
-        env GOOS=${{ matrix.os }} GOARCH=${{ matrix.architecture }} go build -o ./${{ inputs.APP_NAME }}_${{ matrix.os }}_${{ matrix.architecture }}${{ env.FILE_EXTENSION }}
+        env GOOS=${{ inputs.OS }} GOARCH=${{ inputs.ARCH }} go build -o ./${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }}
 
         # If FILE_EXTENSION is empty, there is no need to make the binary executable, because it is for windows.
-        if test -z "${{ env.FILE_EXTENSION }}"; then chmod +x ./${{ inputs.APP_NAME }}_${{ matrix.os }}_${{ matrix.architecture }}${{ env.FILE_EXTENSION }}; fi
+        if test -z "${{ env.FILE_EXTENSION }}"; then chmod +x ./${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }}; fi
 
     - name: Upload artifact
       uses: 'actions/upload-artifact@v3'
       with:
-          name: artifact_${{ inputs.APP_NAME }}_${{ matrix.os }}_${{ matrix.architecture }}
-          path: ./${{ inputs.APP_NAME }}_${{ matrix.os }}_${{ matrix.architecture }}${{ env.FILE_EXTENSION }}
+          name: artifact_${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}
+          path: ./${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }}
 
     - name: Generate checksum
       shell: bash
       run: |
-        sha256sum ./${{ inputs.APP_NAME }}_${{ matrix.os }}_${{ matrix.architecture }}${FILE_EXTENSION} | cut -d " " -f 1 > ./${{ inputs.APP_NAME }}_${{ matrix.os }}_${{ matrix.architecture }}${{ env.FILE_EXTENSION }}.sha256
+        sha256sum ./${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${FILE_EXTENSION} | cut -d " " -f 1 > ./${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }}.sha256
 
     - name: Upload checksum artifact
       uses: 'actions/upload-artifact@v3'
       with:
-          name: artifact_${{ inputs.APP_NAME }}_${{ matrix.os }}_${{ matrix.architecture }}${{ env.FILE_EXTENSION }}.sha256
-          path: ./${{ inputs.APP_NAME }}_${{ matrix.os }}_${{ matrix.architecture }}${{ env.FILE_EXTENSION }}.sha256
+          name: artifact_${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }}.sha256
+          path: ./${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }}.sha256
 
     - name: Delete version-tag when build fails
       if: failure()
