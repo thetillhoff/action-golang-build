@@ -15,6 +15,7 @@ inputs:
   BUILDARGS:
     description: "Additional args to add to the build command (for example `-ldflags="-X 'cmd.version=v1.0.0'"`)"
     required: false
+    default: ""
 
 permissions:
   contents: write
