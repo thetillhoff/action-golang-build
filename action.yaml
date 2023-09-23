@@ -13,7 +13,7 @@ inputs:
     required: true
     default: "${{ github.event.repository.name }}"
   BUILDARGS:
-    description: "Additional args to add to the build command (for example `-ldflags='-X cmd.version=v1.0.0'`)"
+    description: "Additional args to add to the build command (for example `-ldflags='-X github.com/<owner>/<repo>/cmd.version=v1.0.0'`)"
     required: false
     default: ""
 
