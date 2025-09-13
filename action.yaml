@@ -38,7 +38,7 @@ runs:
         ref: "${{ github.ref_name }}"
 
     - name: Set golang version
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version-file: 'go.mod'
 
