@@ -1,4 +1,5 @@
 name: Golang build
+description: "Build a Golang executable for multiple operating systems and architectures and upload them as artifacts"
 
 inputs:
   APP_NAME:
@@ -16,9 +17,6 @@ inputs:
     description: "Additional args to add to the build command (for example `-ldflags='-X github.com/<owner>/<repo>/cmd.version=v1.0.0'`)"
     required: false
     default: ""
-
-permissions:
-  contents: write
 
 runs:
   using: "composite"
@@ -49,7 +47,7 @@ runs:
         echo "architecture: ${{ inputs.ARCH }}"
         go version
 
-        env GOOS=${{ inputs.OS }} GOARCH=${{ inputs.ARCH }} go build ${{ inputs.BUILDARGS }} -o ./${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }}
+        env CGO_ENABLED=0 GOOS=${{ inputs.OS }} GOARCH=${{ inputs.ARCH }} go build ${{ inputs.BUILDARGS }} -o ./${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }}
 
         # If FILE_EXTENSION is empty, there is no need to make the binary executable, because it is for windows.
         if test -z "${{ env.FILE_EXTENSION }}"; then chmod +x ./${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }}; fi
