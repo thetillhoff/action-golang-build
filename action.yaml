@@ -1,25 +1,25 @@
 name: Golang build
-description: "Build a Golang executable for multiple operating systems and architectures and upload them as artifacts"
+description: 'Build a Golang executable for multiple operating systems and architectures and upload them as artifacts'
 
 inputs:
   APP_NAME:
-    description: "Name of the app"
+    description: 'Name of the app'
     required: false
-    default: "${{ github.event.repository.name }}"
+    default: '${{ github.event.repository.name }}'
   OS:
-    description: "OS to build for (linux, windows, darwin)"
+    description: 'OS to build for (linux, windows, darwin)'
     required: true
   ARCH:
-    description: "Architecture to build for (amd64,...)"
+    description: 'Architecture to build for (amd64,...)'
     required: true
-    default: "${{ github.event.repository.name }}"
+    default: '${{ github.event.repository.name }}'
   BUILDARGS:
     description: "Additional args to add to the build command (for example `-ldflags='-X github.com/<owner>/<repo>/cmd.version=v1.0.0'`)"
     required: false
-    default: ""
+    default: ''
 
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
     - name: Set environment variables
       shell: bash
@@ -29,11 +29,6 @@ runs:
         else
           echo "FILE_EXTENSION=" >> $GITHUB_ENV
         fi
-
-    - name: Checkout
-      uses: actions/checkout@v5
-      with:
-        ref: "${{ github.ref_name }}"
 
     - name: Set golang version
       uses: actions/setup-go@v6
@@ -55,8 +50,8 @@ runs:
     - name: Upload artifact
       uses: 'actions/upload-artifact@v5'
       with:
-          name: artifact_${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}
-          path: ./${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }}
+        name: artifact_${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}
+        path: ./${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }}
 
     - name: Generate checksum
       shell: bash
@@ -66,13 +61,5 @@ runs:
     - name: Upload checksum artifact
       uses: 'actions/upload-artifact@v5'
       with:
-          name: artifact_${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }}.sha256
-          path: ./${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }}.sha256
-
-    - name: Delete version-tag when build fails
-      if: failure()
-      shell: bash
-      run: |
-        git config --global user.name 'GithubActions'
-        git config --global user.email 'githubactions@users.noreply.github.com'
-        git push --delete origin ${{ github.ref_name }}
+        name: artifact_${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }}.sha256
+        path: ./${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }}.sha256
