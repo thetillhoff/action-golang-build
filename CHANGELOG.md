@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v1.0.1
+
+- Bump `actions/upload-artifact` to v7.0.1 (Node.js 24 compatible)
+- Bump `actions/setup-go` to v6.4.0, pin to SHA
+
 ## v1.0.0
 
 - **Breaking:** Removed checkout step - workflows must now checkout code before using this action
