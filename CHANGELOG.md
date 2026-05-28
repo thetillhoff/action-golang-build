@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.1.0
+
+- Add `RELATIVE_PACKAGE_PATH` input to support repos where the main package is not at the repo root (e.g. `./cmd/myapp/`); defaults to `.` for backwards compatibility
+
 ## v1.0.1
 
 - Bump `actions/upload-artifact` to v7.0.1 (Node.js 24 compatible)

@@ -17,6 +17,10 @@ inputs:
     description: "Additional args to add to the build command (for example `-ldflags='-X github.com/<owner>/<repo>/cmd.version=v1.0.0'`)"
     required: false
     default: ''
+  RELATIVE_PACKAGE_PATH:
+    description: "Relative path to the package to build (for example `./cmd/myapp/`). Defaults to `.` (repo root)."
+    required: false
+    default: '.'
 
 runs:
   using: 'composite'
@@ -42,7 +46,7 @@ runs:
         echo "architecture: ${{ inputs.ARCH }}"
         go version
 
-        env CGO_ENABLED=0 GOOS=${{ inputs.OS }} GOARCH=${{ inputs.ARCH }} go build ${{ inputs.BUILDARGS }} -o ./${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }}
+        env CGO_ENABLED=0 GOOS=${{ inputs.OS }} GOARCH=${{ inputs.ARCH }} go build ${{ inputs.BUILDARGS }} -o ./${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }} ${{ inputs.RELATIVE_PACKAGE_PATH }}
 
         # If FILE_EXTENSION is empty, there is no need to make the binary executable, because it is for windows.
         if test -z "${{ env.FILE_EXTENSION }}"; then chmod +x ./${{ inputs.APP_NAME }}_${{ inputs.OS }}_${{ inputs.ARCH }}${{ env.FILE_EXTENSION }}; fi
